@@ -9,6 +9,20 @@ mod day01;
 mod day02;
 mod day03;
 
+pub fn file_to_vec(filename: &str) -> io::Result<Vec<String>> { 
+    let file_in = fs::File::open(filename)?; 
+    let file_reader = BufReader::new(file_in); 
+    Ok(file_reader.lines().filter_map(io::Result::ok).collect()) 
+} 
+
+pub fn str_array_to_string_array(strings: Vec<&str>) -> Vec<String> {
+    let mut lines = Vec::new() as Vec<String>;
+    for s in strings {
+        lines.push(s.to_string());
+    }
+    return lines;
+}
+
 fn run_day(requested_day: i32, this_day: i32, extra_days: bool, function: fn())
 {
     if (requested_day == -1) || (requested_day == this_day) || (extra_days && this_day >= requested_day) {
@@ -20,12 +34,6 @@ fn run_day(requested_day: i32, this_day: i32, extra_days: bool, function: fn())
         println!("Elapsed {milli_seconds}ms {seconds}s {minutes}mins");
     }
 }
-
-pub fn file_to_vec(filename: &str) -> io::Result<Vec<String>> { 
-    let file_in = fs::File::open(filename)?; 
-    let file_reader = BufReader::new(file_in); 
-    Ok(file_reader.lines().filter_map(io::Result::ok).collect()) 
-} 
 
 fn main() {
     let args: Vec<String> = env::args().collect();

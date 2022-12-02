@@ -141,26 +141,29 @@ fn most_calories_top3(&self) -> i64 {
 }
 
 #[cfg(test)]
+
 mod tests {
     use super::*;
+    use crate::str_array_to_string_array;
 
     #[test]
     fn most_calories() {
-let lines: Vec<String> = vec![
-"1000".to_string(),
-"2000".to_string(),
-"3000".to_string(),
-"".to_string(),
-"4000".to_string(),
-"".to_string(),
-"5000".to_string(),
-"6000".to_string(),
-"".to_string(),
-"7000".to_string(),
-"8000".to_string(),
-"9000".to_string(),
-"".to_string(),
-"10000".to_string()];
+        let input: Vec<&str> = vec![
+"1000",
+"2000",
+"3000",
+"",
+"4000",
+"",
+"5000",
+"6000",
+"",
+"7000",
+"8000",
+"9000",
+"",
+"10000"];
+        let lines = str_array_to_string_array(input);
         let mut day = Day::instance(false);
         day.parse(&lines);
         assert_eq!(day.most_calories(), 24000);
@@ -168,21 +171,22 @@ let lines: Vec<String> = vec![
 
     #[test]
     fn most_calories_top3() {
-let lines: Vec<String> = vec![
-"1000".to_string(),
-"2000".to_string(),
-"3000".to_string(),
-"".to_string(),
-"4000".to_string(),
-"".to_string(),
-"5000".to_string(),
-"6000".to_string(),
-"".to_string(),
-"7000".to_string(),
-"8000".to_string(),
-"9000".to_string(),
-"".to_string(),
-"10000".to_string()];
+        let input: Vec<&str> = vec![
+"1000",
+"2000",
+"3000",
+"",
+"4000",
+"",
+"5000",
+"6000",
+"",
+"7000",
+"8000",
+"9000",
+"",
+"10000"];
+        let lines = str_array_to_string_array(input);
         let mut day = Day::instance(false);
         day.parse(&lines);
         assert_eq!(day.most_calories_top3(), 45000);
