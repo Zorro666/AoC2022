@@ -1,4 +1,74 @@
 use crate::file_to_vec;
+use std::i64;
+
+/*
+
+--- Day 1: Calorie Counting ---
+
+Santa's reindeer typically eat regular reindeer food, but they need a lot of magical energy to deliver presents on Christmas. 
+For that, their favorite snack is a special type of star fruit that only grows deep in the jungle. 
+The Elves have brought you on their annual expedition to the grove where the fruit grows.
+
+To supply enough magical energy, the expedition needs to retrieve a minimum of fifty stars by December 25th. 
+Although the Elves assure you that the grove has plenty of fruit, you decide to grab any fruit you see along the way, just in case.
+
+Collect stars by solving puzzles. 
+Two puzzles will be made available on each day in the Advent calendar; the second puzzle is unlocked when you complete the first. 
+Each puzzle grants one star. Good luck!
+
+The jungle must be too overgrown and difficult to navigate in vehicles or access from the air; the Elves' expedition traditionally goes on foot. 
+As your boats approach land, the Elves begin taking inventory of their supplies. 
+One important consideration is food - in particular, the number of Calories each Elf is carrying (your puzzle input).
+
+The Elves take turns writing down the number of Calories contained by the various meals, snacks, rations, etc. that they've brought with them, one item per line. 
+Each Elf separates their own inventory from the previous Elf's inventory (if any) by a blank line.
+
+For example, suppose the Elves finish writing their items' Calories and end up with the following list:
+
+1000
+2000
+3000
+
+4000
+
+5000
+6000
+
+7000
+8000
+9000
+
+10000
+
+This list represents the Calories of the food carried by five Elves:
+
+The first Elf is carrying food with 1000, 2000, and 3000 Calories, a total of 6000 Calories.
+The second Elf is carrying one food item with 4000 Calories.
+The third Elf is carrying food with 5000 and 6000 Calories, a total of 11000 Calories.
+The fourth Elf is carrying food with 7000, 8000, and 9000 Calories, a total of 24000 Calories.
+The fifth Elf is carrying one food item with 10000 Calories.
+
+In case the Elves get hungry and need extra snacks, they need to know which Elf to ask: they'd like to know how many Calories are being carried by the Elf carrying the most Calories. 
+In the example above, this is 24000 (carried by the fourth Elf).
+
+Find the Elf carrying the most Calories. How many total Calories is that Elf carrying?
+
+Your puzzle answer was 71502.
+
+--- Part Two ---
+
+By the time you calculate the answer to the Elves' question, they've already realized that the Elf carrying the most Calories of food might eventually run out of snacks.
+
+To avoid this unacceptable situation, the Elves would instead like to know the total Calories carried by the top three Elves carrying the most Calories. 
+That way, even if one of those Elves runs out of snacks, they still have two backups.
+
+In the example above, the top three Elves are the fourth Elf (with 24000 Calories), then the third Elf (with 11000 Calories), then the fifth Elf (with 10000 Calories). 
+The sum of the Calories carried by these three elves is 45000.
+
+Find the top three Elves carrying the most Calories. 
+How many Calories are those Elves carrying in total?
+
+*/
 
 static INPUT_FILE: &str = "data/day01/input.txt";
 
@@ -11,15 +81,13 @@ pub fn run() {
 
 struct Day {
     part1: bool,
-    values: Vec<i32>
+    totals: Vec<i64>,
 }
 
 impl Day {
 
-const TARGET_SUM: i32 = 2020;
-
 fn instance(part1: bool) -> Day {
-    Day { part1: part1, values: Vec::new() }
+    Day { part1: part1, totals: Vec::new() }
 }
 
 fn execute(&mut self) {
@@ -27,17 +95,17 @@ fn execute(&mut self) {
     self.parse(&lines);
 
     if self.part1 {
-        let result1 = Day::sum_two(Day::TARGET_SUM, &mut self.values);
+        let result1 = self.most_calories();
         println!("Day01 : Result1 {result1}");
-        let expected = 800139;
+        let expected = 71502;
         if result1 != expected {
             panic!("Part1 is broken {result1} != {expected}");
         }
     }
     else {
-        let result2 = Day::sum_three(Day::TARGET_SUM, &mut self.values);
+        let result2 = self.most_calories_top3();
         println!("Day01 : Result2 {result2}");
-        let expected = 59885340;
+        let expected = 208191;
         if result2 != expected {
             panic!("Part2 is broken {result2} != {expected}");
         }
@@ -45,74 +113,31 @@ fn execute(&mut self) {
 }
 
 fn parse(&mut self, lines: &Vec<String>) {
-    let count = lines.len();
-    self.values.resize(count, 0);
-    let mut i = 0;
+    let mut total: i64 = 0;
     for line in lines {
-        self.values[i] = line.parse().expect("Not a number");
-        i += 1;
-    }
-}
-
-fn sum_two(target_sum: i32, values: &mut Vec<i32>) -> i64 {
-    values.sort();
-    let count = values.len();
-    for i in 0..count - 1 {
-        let ivalue = values[i];
-        let mut iremainder = target_sum;
-        iremainder -= ivalue;
-        for j in i+1..count {
-            let jvalue = values[j];
-            let remainder = iremainder - jvalue;
-            if remainder < 0 {
-                break;
-            }
-            if remainder == 0 {
-                let sum = ivalue + jvalue;
-                if sum != target_sum {
-                    panic!("Expecting {target_sum} got {sum} = {ivalue} + {jvalue}");
-                }
-                let mult: i64 = ivalue as i64 * jvalue as i64;
-                return mult;
-            }
+        if !line.is_empty() {
+            let value: i64 = line.parse().expect("Not a number");
+            total += value;
+        }
+        else {
+            self.totals.push(total);
+            total = 0;
         }
     }
-    panic!("Sum of {target_sum} not found");
-}
-
-fn sum_three(target_sum: i32, values: &mut Vec<i32>) -> i64 {
-    values.sort();
-    let count = values.len();
-    for i in 0..count - 2 {
-        let ivalue = values[i];
-        let mut iremainder = target_sum;
-        iremainder -= ivalue;
-        for j in i+1..count-1 {
-            let jvalue = values[j];
-            let jremainder = iremainder - jvalue;
-            if jremainder < 0 {
-                break;
-            }
-            for k in j+1..count {
-                let kvalue = values[k];
-                let remainder = jremainder - kvalue;
-                if remainder < 0 {
-                    break;
-                }
-                if remainder == 0 {
-                    let sum = ivalue + jvalue + kvalue;
-                    if sum != target_sum {
-                        panic!("Expecting {target_sum} got {sum} = {ivalue} + {jvalue} + {kvalue}");
-                    }
-                    let mult: i64 = ivalue as i64 * jvalue as i64 * kvalue as i64;
-                    return mult;
-                }
-            }
-        }
+    if total != 0 {
+        self.totals.push(total);
     }
-    panic!("Sum of {target_sum} not found");
+    self.totals.sort();
+    self.totals.reverse();
 }
 
+fn most_calories(&self) -> i64 {
+    return self.totals[0];
+}
+
+fn most_calories_top3(&self) -> i64 {
+    return self.totals[0] + self.totals[1] + self.totals[2];
+}
 }
 
 #[cfg(test)]
@@ -120,14 +145,46 @@ mod tests {
     use super::*;
 
     #[test]
-    fn sum_two() {
-        let mut values = vec![1721, 979, 366, 299, 675, 1456];
-        assert_eq!(Day::sum_two(2020, &mut values), 514579);
+    fn most_calories() {
+let lines: Vec<String> = vec![
+"1000".to_string(),
+"2000".to_string(),
+"3000".to_string(),
+"".to_string(),
+"4000".to_string(),
+"".to_string(),
+"5000".to_string(),
+"6000".to_string(),
+"".to_string(),
+"7000".to_string(),
+"8000".to_string(),
+"9000".to_string(),
+"".to_string(),
+"10000".to_string()];
+        let mut day = Day::instance(false);
+        day.parse(&lines);
+        assert_eq!(day.most_calories(), 24000);
     }
 
     #[test]
-    fn sum_three() {
-        let mut values = vec![1721, 979, 366, 299, 675, 1456];
-        assert_eq!(Day::sum_three(2020, &mut values), 241861950);
+    fn most_calories_top3() {
+let lines: Vec<String> = vec![
+"1000".to_string(),
+"2000".to_string(),
+"3000".to_string(),
+"".to_string(),
+"4000".to_string(),
+"".to_string(),
+"5000".to_string(),
+"6000".to_string(),
+"".to_string(),
+"7000".to_string(),
+"8000".to_string(),
+"9000".to_string(),
+"".to_string(),
+"10000".to_string()];
+        let mut day = Day::instance(false);
+        day.parse(&lines);
+        assert_eq!(day.most_calories_top3(), 45000);
     }
 }
