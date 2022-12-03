@@ -96,7 +96,7 @@ fn execute(&mut self) {
 
     if self.part1 {
         let result1 = self.most_calories();
-        println!("Day01 : Result1 {result1}");
+        println!("Day01: Result1 {result1}");
         let expected = 71502;
         if result1 != expected {
             panic!("Part1 is broken {result1} != {expected}");
@@ -104,7 +104,7 @@ fn execute(&mut self) {
     }
     else {
         let result2 = self.most_calories_top3();
-        println!("Day01 : Result2 {result2}");
+        println!("Day01: Result2 {result2}");
         let expected = 208191;
         if result2 != expected {
             panic!("Part2 is broken {result2} != {expected}");

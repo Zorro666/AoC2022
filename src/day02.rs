@@ -96,7 +96,7 @@ fn execute(&mut self) {
 
     if self.part1 {
         let result1 = self.score();
-        println!("Day02 : Result1 {result1}");
+        println!("Day02: Result1 {result1}");
         let expected = 15691;
         if result1 != expected {
             panic!("Part1 is broken {result1} != {expected}");
@@ -104,7 +104,7 @@ fn execute(&mut self) {
     }
     else {
         let result2 = self.score();
-        println!("Day02 : Result2 {result2}");
+        println!("Day02: Result2 {result2}");
         let expected = 12989;
         if result2 != expected {
             panic!("Part2 is broken {result2} != {expected}");
