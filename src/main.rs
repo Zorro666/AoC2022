@@ -1,8 +1,8 @@
 use std::env;
 use std::fs;
-use std::io::BufReader;
-use std::io::BufRead;
 use std::io;
+use std::io::BufRead;
+use std::io::BufReader;
 use std::time::Instant;
 
 mod day01;
@@ -31,11 +31,11 @@ mod day23;
 mod day24;
 mod day25;
 
-pub fn file_to_vec(filename: &str) -> io::Result<Vec<String>> { 
-    let file_in = fs::File::open(filename)?; 
-    let file_reader = BufReader::new(file_in); 
-    Ok(file_reader.lines().filter_map(io::Result::ok).collect()) 
-} 
+pub fn file_to_vec(filename: &str) -> io::Result<Vec<String>> {
+    let file_in = fs::File::open(filename)?;
+    let file_reader = BufReader::new(file_in);
+    Ok(file_reader.lines().filter_map(io::Result::ok).collect())
+}
 
 pub fn str_array_to_string_array(strings: Vec<&str>) -> Vec<String> {
     let mut lines = Vec::new() as Vec<String>;
@@ -45,9 +45,11 @@ pub fn str_array_to_string_array(strings: Vec<&str>) -> Vec<String> {
     return lines;
 }
 
-fn run_day(requested_day: i32, this_day: i32, extra_days: bool, function: fn())
-{
-    if (requested_day == -1) || (requested_day == this_day) || (extra_days && this_day >= requested_day) {
+fn run_day(requested_day: i32, this_day: i32, extra_days: bool, function: fn()) {
+    if (requested_day == -1)
+        || (requested_day == this_day)
+        || (extra_days && this_day >= requested_day)
+    {
         let now = Instant::now();
         function();
         let milli_seconds = now.elapsed().as_millis() as u64;
@@ -64,8 +66,8 @@ fn main() {
     let mut extra_days: bool = false;
     if args.len() == 2 {
         let arg1: &String = &args[1];
-            extra_days = arg1.ends_with('+');
-            day = arg1.trim_end_matches('+').parse().expect("Not a number");
+        extra_days = arg1.ends_with('+');
+        day = arg1.trim_end_matches('+').parse().expect("Not a number");
     }
     run_day(day, 1, extra_days, day01::run);
     run_day(day, 2, extra_days, day02::run);
