@@ -304,7 +304,7 @@ impl Day {
             l_is_value = false;
         }
         let r = self.packets[right_packet][r_index];
-        let mut r_is_list_start = Day::is_list_start(r);
+        let r_is_list_start = Day::is_list_start(r);
         let r_is_list_end = Day::is_list_end(r);
         let r_is_separator = Day::is_separator(r);
         let mut r_is_value = true;
@@ -351,7 +351,6 @@ impl Day {
             assert!(l_is_list_start);
             assert!(!l_is_list_end);
             assert!(!l_is_separator);
-            r_is_list_start = true;
             r_is_value = false;
             r_value = l_value;
             // Insert ] after r's value

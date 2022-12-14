@@ -32,14 +32,14 @@ impl Day {
 
         if self.part1 {
             let result1 = self.part1();
-            println!("Day13: Result1 {result1}");
+            println!("Day21: Result1 {result1}");
             let expected = 7737;
             if result1 != expected {
                 panic!("Part1 is broken {result1} != {expected}");
             }
         } else {
             let result2 = self.part2();
-            println!("Day13: Result2 {result2}");
+            println!("Day21: Result2 {result2}");
             let expected = 2697;
             if result2 != expected {
                 panic!("Part2 is broken {result2} != {expected}");
