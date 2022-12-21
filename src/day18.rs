@@ -283,7 +283,6 @@ impl Day {
         }
 
         // Convert all AIR cubes to LAVA cubes
-        let count = self.count_cubes;
         for i in 0..self.grid_data.len() {
             // Cube @ x,y,z
             if self.grid_data[i] == Day::AIR {
