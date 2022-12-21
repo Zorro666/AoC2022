@@ -425,7 +425,7 @@ impl Day {
         } else {
             let result2 = self.part2(1000000000000);
             println!("Day17: Result2 {result2}");
-            let expected = 1540462427753;
+            let expected = 1541449275365;
             if result2 != expected {
                 panic!("Part2 is broken {result2} != {expected}");
             }
