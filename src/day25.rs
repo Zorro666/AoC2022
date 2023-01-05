@@ -2,27 +2,160 @@ use crate::file_to_vec;
 
 /*
 
+--- Day 25: Full of Hot Air ---
+
+As the expedition finally reaches the extraction point, several large hot air balloons drift down to meet you.
+Crews quickly start unloading the equipment the balloons brought: many hot air balloon kits, some fuel tanks, and a fuel heating machine.
+
+The fuel heating machine is a new addition to the process.
+When this mountain was a volcano, the ambient temperature was more reasonable;
+now, it's so cold that the fuel won't work at all without being warmed up first.
+
+The Elves, seemingly in an attempt to make the new machine feel welcome, have already attached a pair of googly eyes and started calling it "Bob".
+
+To heat the fuel, Bob needs to know the total amount of fuel that will be processed ahead of time so it can correctly calibrate heat output and flow rate.
+This amount is simply the sum of the fuel requirements of all of the hot air balloons, and those fuel requirements are even listed clearly on the side of each hot air balloon's burner.
+
+You assume the Elves will have no trouble adding up some numbers and are about to go back to figuring out which balloon is yours when you get a tap on the shoulder.
+Apparently, the fuel requirements use numbers written in a format the Elves don't recognize; predictably, they'd like your help deciphering them.
+
+You make a list of all of the fuel requirements (your puzzle input), but you don't recognize the number format either.
+
+For example:
+
+1=-0-2
+12111
+2=0=
+21
+2=01
+111
+20012
+112
+1=-1=
+1-12
+12
+1=
+122
+
+Fortunately, Bob is labeled with a support phone number.
+Not to be deterred, you call and ask for help.
+
+"That's right, just supply the fuel amount to the-- oh, for more than one burner?
+No problem, you just need to add together our Special Numeral-Analogue Fuel Units.
+Patent pending! They're way better than normal numbers for--"
+
+You mention that it's quite cold up here and ask if they can skip ahead.
+
+"Okay, our Special Numeral-Analogue Fuel Units - SNAFU for short - are sort of like normal numbers.
+You know how starting on the right, normal numbers have a ones place, a tens place, a hundreds place, and so on, where the digit in each place tells you how many of that value you have?"
+
+"SNAFU works the same way, except it uses powers of five instead of ten.
+Starting from the right, you have a ones place, a fives place, a twenty-fives place, a one-hundred-and-twenty-fives place, and so on.
+It's that easy!"
+
+You ask why some of the digits look like - or = instead of "digits".
+
+"You know, I never did ask the engineers why they did that.
+Instead of using digits four through zero, the digits are 2, 1, 0, minus (written -), and double-minus (written =).
+Minus is worth -1, and double-minus is worth -2."
+
+"So, because ten (in normal numbers) is two fives and no ones, in SNAFU it is written 20.
+Since eight (in normal numbers) is two fives minus two ones, it is written 2=."
+
+"You can do it the other direction, too.
+Say you have the SNAFU number 2=-01.
+That's 2 in the 625s place, = (double-minus) in the 125s place, - (minus) in the 25s place, 0 in the 5s place, and 1 in the 1s place.
+(2 times 625) plus (-2 times 125) plus (-1 times 25) plus (0 times 5) plus (1 times 1).
+That's 1250 plus -250 plus -25 plus 0 plus 1.
+976!"
+
+"I see here that you're connected via our premium uplink service, so I'll transmit our handy SNAFU brochure to you now.
+
+Did you need anything else?"
+
+You ask if the fuel will even work in these temperatures.
+
+"Wait, it's how cold?
+There's no way the fuel - or any fuel - would work in those conditions!
+There are only a few places in the-- where did you say you are again?"
+
+Just then, you notice one of the Elves pour a few drops from a snowflake-shaped container into one of the fuel tanks, thank the support representative for their time, and disconnect the call.
+
+The SNAFU brochure contains a few more examples of decimal ("normal") numbers and their SNAFU counterparts:
+
+  Decimal          SNAFU
+        1              1
+        2              2
+        3             1=
+        4             1-
+        5             10
+        6             11
+        7             12
+        8             2=
+        9             2-
+       10             20
+       15            1=0
+       20            1-0
+     2022         1=11-2
+    12345        1-0---0
+314159265  1121-1110-1=0
+
+Based on this process, the SNAFU numbers in the example above can be converted to decimal numbers as follows:
+
+ SNAFU  Decimal
+1=-0-2     1747
+ 12111      906
+  2=0=      198
+    21       11
+  2=01      201
+   111       31
+ 20012     1257
+   112       32
+ 1=-1=      353
+  1-12      107
+    12        7
+    1=        3
+   122       37
+
+In decimal, the sum of these numbers is 4890.
+
+As you go to input this number on Bob's console, you discover that some buttons you expected are missing.
+
+Instead, you are met with buttons labeled =, -, 0, 1, and 2.
+Bob needs the input value expressed as a SNAFU number, not in decimal.
+
+Reversing the process, you can determine that for the decimal number 4890, the SNAFU number you need to supply to Bob's console is 2=-1=0.
+
+The Elves are starting to get cold.
+
+What SNAFU number do you supply to Bob's console?
+
 */
 
 static INPUT_FILE: &str = "data/day25/input.txt";
 
 pub fn run() {
     println!("Day25: Start");
-    Day::instance(true).execute();
-    Day::instance(false).execute();
+    Day::instance().execute();
     println!("Day25: End");
 }
 
 struct Day {
-    part1: bool,
-    strings: Vec<Vec<u8>>,
+    snafus: Vec<String>,
+    decimals: Vec<usize>,
 }
 
 impl Day {
-    fn instance(part1: bool) -> Day {
+    const SNAFU_0: u8 = '0' as u8;
+    const SNAFU_1: u8 = '1' as u8;
+    const SNAFU_2: u8 = '2' as u8;
+    const SNAFU_MINUS: u8 = '-' as u8;
+    const SNAFU_EQUALS: u8 = '=' as u8;
+
+    fn instance() -> Day {
         Day {
-            part1: part1,
-            strings: Vec::new(),
+            snafus: Vec::new(),
+            decimals: Vec::new(),
         }
     }
 
@@ -30,45 +163,89 @@ impl Day {
         let lines = file_to_vec(INPUT_FILE).expect("Could not load file");
         self.parse(&lines);
 
-        if self.part1 {
-            let result1 = self.part1();
-            println!("Day25: Result1 {result1}");
-            let expected = 7737;
-            if result1 != expected {
-                panic!("Part1 is broken {result1} != {expected}");
-            }
-        } else {
-            let result2 = self.part2();
-            println!("Day25: Result2 {result2}");
-            let expected = 2697;
-            if result2 != expected {
-                panic!("Part2 is broken {result2} != {expected}");
-            }
+        let result1 = self.part1();
+        println!("Day25: Result1 {result1}");
+        let expected = "2=01-0-2-0=-0==-1=01";
+        if result1 != expected {
+            panic!("Part1 is broken {result1} != {expected}");
         }
     }
 
     fn parse(&mut self, lines: &Vec<String>) {
         for line in lines {
-            self.strings.push(line.as_bytes().to_vec());
+            let snafu = line;
+            self.snafus.push(snafu.to_owned());
+            self.decimals.push(Day::snafu_to_decimal(&snafu));
         }
     }
 
-    fn part1(&self) -> usize {
-        let count = self.strings.len();
-        let mut total = 0;
-        for i in 0..count {
-            total += i;
+    fn decimal_to_snafu(decimal: &String) -> String {
+        let mut source: usize = decimal.parse().unwrap();
+
+        // Base 5 with 0, 1, 2, - (-1), = (-2).
+        // Convert to base 5
+        // 3 becomes = and +1 on next digit
+        // 4 becomes - and +1 on next digit
+        let mut result = String::new();
+        let mut borrow = 0;
+        while source != 0 {
+            let mut digit = source % 5 + borrow;
+            borrow = 0;
+            if digit > 4 {
+                borrow = digit / 5;
+                digit = digit % 5;
+            }
+            let snafu = match digit {
+                0 => '0',
+                1 => '1',
+                2 => '2',
+                3 => '=',
+                4 => '-',
+                _ => panic!("Unknown digit {digit}"),
+            };
+            if digit >= 3 {
+                borrow = 1;
+            }
+            result.insert(0, snafu);
+            source /= 5;
         }
-        return total;
+        if borrow == 1 {
+            result.insert(0, '1');
+            borrow = 0;
+        }
+        assert_eq!(borrow, 0);
+
+        return result;
     }
 
-    fn part2(&self) -> usize {
-        let count = self.strings.len();
-        let mut total = 0;
-        for i in 0..count {
-            total += i;
+    fn snafu_to_decimal(snafu: &String) -> usize {
+        let mut source = snafu.as_bytes().to_owned();
+        source.reverse();
+
+        // Base 5 with 0, 1, 2, - (-1), = (-2).
+        let mut result = 0;
+        let mut fives = 1;
+        for d in 0..source.len() {
+            let digit: i64 = match source[d] {
+                Day::SNAFU_0 => 0,
+                Day::SNAFU_1 => 1,
+                Day::SNAFU_2 => 2,
+                Day::SNAFU_MINUS => -1,
+                Day::SNAFU_EQUALS => -2,
+                _ => panic!("Unknown digit"),
+            };
+            let decimal = digit * fives;
+            result += decimal;
+            fives *= 5;
         }
-        return total;
+        return result as usize;
+    }
+
+    fn part1(&self) -> String {
+        let total: usize = self.decimals.iter().sum();
+        let decimal = total.to_string();
+        let snafu = Day::decimal_to_snafu(&decimal);
+        return snafu;
     }
 }
 
@@ -78,40 +255,44 @@ mod tests {
     use crate::str_array_to_string_array;
 
     #[test]
-    fn part1() {
-        let input = (
-            vec![
-                "vJrwpWtwJgWrhcsFMMfFFhFp",
-                "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL",
-                "PmmdzqPrVvPwwTWBwg",
-                "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn",
-                "ttgJtRGJQctTZtZT",
-                "CrZsJsPPZsGzwwsLwLmpwMDw",
-            ],
-            15,
-        );
-        let lines = str_array_to_string_array(input.0);
-        let mut day = Day::instance(true);
-        day.parse(&lines);
-        assert_eq!(day.part1(), input.1);
+    fn decimal_to_from_snafu() {
+        let tests = vec![
+            ("1", "1"),
+            ("2", "2"),
+            ("3", "1="),
+            ("4", "1-"),
+            ("5", "10"),
+            ("6", "11"),
+            ("7", "12"),
+            ("8", "2="),
+            ("9", "2-"),
+            ("10", "20"),
+            ("15", "1=0"),
+            ("20", "1-0"),
+            ("2022", "1=11-2"),
+            ("12345", "1-0---0"),
+            ("314159265", "1121-1110-1=0"),
+        ];
+        for i in 0..tests.len() {
+            let decimal = tests[i].0.to_string();
+            let snafu = tests[i].1.to_string();
+            assert_eq!(Day::decimal_to_snafu(&decimal), snafu);
+            assert_eq!(Day::snafu_to_decimal(&snafu).to_string(), decimal);
+        }
     }
 
     #[test]
-    fn part2() {
+    fn part1() {
         let input = (
             vec![
-                "vJrwpWtwJgWrhcsFMMfFFhFp",
-                "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL",
-                "PmmdzqPrVvPwwTWBwg",
-                "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn",
-                "ttgJtRGJQctTZtZT",
-                "CrZsJsPPZsGzwwsLwLmpwMDw",
+                "1=-0-2", "12111", "2=0=", "21", "2=01", "111", "20012", "112", "1=-1=", "1-12",
+                "12", "1=", "122",
             ],
-            15,
+            "2=-1=0",
         );
         let lines = str_array_to_string_array(input.0);
-        let mut day = Day::instance(false);
+        let mut day = Day::instance();
         day.parse(&lines);
-        assert_eq!(day.part2(), input.1);
+        assert_eq!(day.part1(), input.1);
     }
 }
