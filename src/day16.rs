@@ -1,3 +1,4 @@
+// Optimise this
 use crate::file_to_vec;
 
 /*
