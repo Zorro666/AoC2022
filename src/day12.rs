@@ -1,4 +1,6 @@
 use crate::file_to_vec;
+use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 
 /*
 
@@ -86,6 +88,24 @@ struct Day {
     end_index: usize,
 }
 
+#[derive(PartialEq, Eq)]
+struct Node {
+    index: usize,
+    length: usize,
+}
+
+impl Ord for Node {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.length.cmp(&self.length)
+    }
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl Day {
     fn instance(part1: bool) -> Day {
         Day {
@@ -149,27 +169,20 @@ impl Day {
     }
 
     fn find_shortest_path(&self, starting_point: usize, max_length: usize) -> usize {
-        // nodes.push (index:start_index, len:0)
-
-        // while !nodes.empty
-        //   node = nodes.pop;
-        //   if node == end_index : min_len = min(len,min_len) : continue
-        //   if up is valid : push up, len +=1
-        //   if down is valid : push down, len +=1
-        //   if left is valid : push left, len +=1
-        //   if right is valid : push right, len +=1
-        let mut nodes: Vec<(usize, usize)> = Vec::new();
         let mut visited_grid: Vec<usize> = Vec::new();
         let dim_x = self.dim_x;
         let dim_y = self.dim_y;
         visited_grid.resize(dim_x * dim_y, std::usize::MAX);
         let mut min_length = std::usize::MAX;
-        nodes.push((starting_point, 0));
+        let mut nodes = BinaryHeap::new();
+        nodes.push(Node {
+            index: starting_point,
+            length: 0,
+        });
         while !nodes.is_empty() {
             let node = nodes.pop().unwrap();
-            let current_index = node.0;
-            let current_length = node.1;
-            // if node == end_index : min_len = min(len,min_len) : continue
+            let current_index = node.index;
+            let current_length = node.length;
             if current_index == self.end_index {
                 if current_length < min_length {
                     min_length = current_length;
@@ -193,28 +206,40 @@ impl Day {
             if current_index >= dim_x {
                 let new_index = current_index - dim_x;
                 if self.grid[new_index] <= max_height {
-                    nodes.push((new_index, new_length));
+                    nodes.push(Node {
+                        index: new_index,
+                        length: new_length,
+                    });
                 }
             }
             // if down is valid : push down, len +=1
             if y < dim_y - 1 {
                 let new_index = current_index + dim_x;
                 if self.grid[new_index] <= max_height {
-                    nodes.push((new_index, new_length));
+                    nodes.push(Node {
+                        index: new_index,
+                        length: new_length,
+                    });
                 }
             }
             // if left is valid : push left, len +=1
             if x > 0 {
                 let new_index = current_index - 1;
                 if self.grid[new_index] <= max_height {
-                    nodes.push((new_index, new_length));
+                    nodes.push(Node {
+                        index: new_index,
+                        length: new_length,
+                    });
                 }
             }
             // if right is valid : push right, len +=1
             if x < dim_x - 1 {
                 let new_index = current_index + 1;
                 if self.grid[new_index] <= max_height {
-                    nodes.push((new_index, new_length));
+                    nodes.push(Node {
+                        index: new_index,
+                        length: new_length,
+                    });
                 }
             }
         }
