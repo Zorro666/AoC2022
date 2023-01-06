@@ -277,6 +277,16 @@ struct Day {
     max_rate: usize,
 }
 
+struct Node {
+    index: usize,
+    visited_nodes: Vec<usize>,
+    pressure: usize,
+    active_pressure: usize,
+    time: usize,
+    me_node: usize,
+    max_rate: usize,
+}
+
 impl Day {
     fn instance(part1: bool) -> Day {
         Day {
@@ -485,7 +495,6 @@ impl Day {
         let mut pressure_to_visit: Vec<usize> = Vec::new();
         let mut active_pressure_to_visit: Vec<usize> = Vec::new();
         let mut times_to_visit: Vec<usize> = Vec::new();
-        let mut me_node_to_visit: Vec<usize> = Vec::new();
         let mut max_rates_to_visit: Vec<usize> = Vec::new();
 
         let route = vec![self.start_node];
@@ -551,13 +560,12 @@ impl Day {
                 active_pressure_to_visit.push(new_active_pressure);
                 visited_nodes_to_visit.push(new_visited_nodes.to_owned());
                 max_rates_to_visit.push(new_max_rate);
-                me_node_to_visit.push(end);
             }
         }
-        self.print_route(&best_route);
-        println!("");
-        self.print_steps(&best_route);
-        println!("");
+        // self.print_route(&best_route);
+        // println!("");
+        // self.print_steps(&best_route);
+        // println!("");
         return max_total_pressure;
     }
 
@@ -568,10 +576,12 @@ impl Day {
         let mut nodes_to_visit: Vec<usize> = Vec::new();
         let mut visited_nodes_to_visit: Vec<Vec<usize>> = Vec::new();
         let mut max_rates_to_visit: Vec<usize> = Vec::new();
+
         let mut el_node_to_visit: Vec<usize> = Vec::new();
         let mut el_times_to_visit: Vec<usize> = Vec::new();
         let mut el_pressure_to_visit: Vec<usize> = Vec::new();
         let mut el_active_pressure_to_visit: Vec<usize> = Vec::new();
+
         let mut me_node_to_visit: Vec<usize> = Vec::new();
         let mut me_times_to_visit: Vec<usize> = Vec::new();
         let mut me_pressure_to_visit: Vec<usize> = Vec::new();
@@ -714,10 +724,10 @@ impl Day {
                 max_rates_to_visit.push(new_max_rate);
             }
         }
-        self.print_route(&best_route);
-        println!("");
-        self.print_steps(&best_route);
-        println!("");
+        // self.print_route(&best_route);
+        // println!("");
+        // self.print_steps(&best_route);
+        // println!("");
         return max_total_pressure;
     }
 }
