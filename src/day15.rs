@@ -306,7 +306,6 @@ impl Day {
                 range_extent.0 = range_extent.0.min(min_x);
                 range_extent.1 = range_extent.1.max(max_x);
             }
-            // TODO: merge ranges
         }
         for x in range_extent.0..=range_extent.1 {
             let mut detected = false;
@@ -327,10 +326,12 @@ impl Day {
 
     fn part2(&self, max_row: i32) -> i64 {
         let sensor_count = self.sensors.len();
-        for y in 0..max_row {
+        for i in 0..max_row {
+            let y = max_row - i;
             let mut ranges: Vec<(i32, i32)> = Vec::new();
 
             // Compute possible ranges of overlap
+            let mut detected = false;
             for s in 0..sensor_count {
                 let sx = self.sensors[s].0;
                 let sy = self.sensors[s].1;
@@ -375,9 +376,16 @@ impl Day {
                         break;
                     }
                 }
+                if min_x == 0 && max_x == max_row {
+                    detected = true;
+                    break;
+                }
                 if new_range {
                     ranges.push((min_x, max_x));
                 }
+            }
+            if detected {
+                continue;
             }
             for i in 0..ranges.len() - 1 {
                 for j in i + 1..ranges.len() {
@@ -404,126 +412,178 @@ impl Day {
                 }
             }
 
-            let mut detected = false;
+            // try to merge ranges into each other
+            for r in 0..ranges.len() - 1 {
+                if ranges[r].0 == 0 && ranges[r].1 == 0 {
+                    continue;
+                }
+
+                for rj in r + 1..ranges.len() {
+                    let mut new_range = true;
+                    if rj == r {
+                        continue;
+                    }
+                    let min_r = ranges[r].0;
+                    let max_r = ranges[r].1;
+                    let min_x = ranges[rj].0;
+                    let max_x = ranges[rj].1;
+                    if min_x == 0 && max_x == 0 {
+                        continue;
+                    }
+                    //      min_r------max_r
+                    // min_x-----------------max_x
+                    if min_x <= min_r && min_r <= max_x && max_r <= max_x {
+                        ranges[r].0 = min_x;
+                        ranges[r].1 = max_x;
+                        new_range = false;
+                    }
+                    // min_r-----------------max_r
+                    //      min_x------max_x
+                    else if min_r <= min_x && min_x <= max_r && max_x <= max_r {
+                        new_range = false;
+                    }
+                    // min_r------max_r
+                    //    min_x------max_x
+                    else if min_r <= min_x && min_x <= max_r && max_x > max_r {
+                        ranges[r].1 = max_x;
+                        new_range = false;
+                    }
+                    // min_x------max_x
+                    //      min_r------max_r
+                    else if min_x < min_r && min_r <= max_x && max_r >= max_x {
+                        ranges[r].0 = min_x;
+                        new_range = false;
+                    }
+                    if !new_range {
+                        ranges[rj].0 = 0;
+                        ranges[rj].1 = 0;
+                    }
+                }
+            }
             for r in 0..ranges.len() {
+                if r >= ranges.len() {
+                    break;
+                }
                 let min_x = ranges[r].0;
                 let max_x = ranges[r].1;
                 if min_x == 0 && max_x == max_row {
                     detected = true;
                     break;
                 }
+                if min_x == 0 && max_x == 0 {
+                    ranges.swap_remove(r);
+                }
             }
-            if !detected {
-                // try to merge ranges into each other
-                for r in 0..ranges.len() {
-                    if ranges[r].0 == 0 && ranges[r].1 == 0 {
-                        continue;
-                    }
+            if detected {
+                continue;
+            }
+            let mut x_min = max_row;
+            let mut x_max = max_row;
+            for r in 0..ranges.len() {
+                let min_x = ranges[r].0;
+                let max_x = ranges[r].1;
+                if min_x == 0 && max_x == 0 {
+                    continue;
+                }
+                x_min = x_min.min(min_x);
+                x_max = x_max.min(max_x);
+            }
+            // Subtract the ranges to make unique ranges
+            let mut new_ranges: Vec<(i32, i32)> = Vec::new();
+            new_ranges.push(ranges[0]);
+            for r in 1..ranges.len() {
+                let min_r = ranges[r].0;
+                let max_r = ranges[r].1;
+                for rj in 0..new_ranges.len() {
+                    let min_x = new_ranges[rj].0;
+                    let max_x = new_ranges[rj].1;
+                    //        min_r------max_r
+                    // min_x--------------------max_x
+                    // min_x--min_r      max_r--max_x
 
-                    let mut new_range = true;
-                    for rj in 0..ranges.len() {
-                        if rj == r {
-                            continue;
-                        }
-                        let min_r = ranges[r].0;
-                        let max_r = ranges[r].1;
-                        let min_x = ranges[rj].0;
-                        let max_x = ranges[rj].1;
-                        if min_x == 0 && max_x == 0 {
-                            continue;
-                        }
-                        //      min_r------max_r
-                        // min_x-----------------max_x
-                        if min_x <= min_r && min_r <= max_x && max_r <= max_x {
-                            ranges[r].0 = min_x;
-                            ranges[r].1 = max_x;
-                            new_range = false;
-                        }
-                        // min_r-----------------max_r
-                        //      min_x------max_x
-                        else if min_r <= min_x && min_x <= max_r && max_x <= max_r {
-                            new_range = false;
-                        }
-                        // min_r------max_r
-                        //    min_x------max_x
-                        else if min_r <= min_x && min_x <= max_r && max_x > max_r {
-                            ranges[r].1 = max_x;
-                            new_range = false;
-                        }
-                        // min_x------max_x
-                        //      min_r------max_r
-                        else if min_x < min_r && min_r <= max_x && max_r >= max_x {
-                            ranges[r].0 = min_x;
-                            new_range = false;
-                        }
-                        if !new_range {
-                            ranges[rj].0 = 0;
-                            ranges[rj].1 = 0;
-                        }
+                    // min_r--------------------max_r
+                    //        min_x------max_x
+                    // min_r--min_x      max_x--max_r
+
+                    // min_r----------max_r
+                    //         min_x----------max_x
+                    // min_r---min_x  max_r---max_x
+
+                    // min_x---------max_x
+                    //        min_r----------max_r
+                    // min_x--min_r  max_x---max_r
+
+                    // min_r---max_r
+                    //                min_x--max_x
+                    // min_x--max_x
+                    //                min_r---max_r
+                    // r1_min---------r1_max
+                    //        r2_min----------r2_max
+                    let range1_min = min_x.min(min_r);
+                    let range1_max = min_x.max(min_r).min(max_x.min(max_r));
+                    let range2_min = max_x.min(max_r).max(min_x.max(min_r));
+                    let range2_max = max_x.max(max_r);
+                    assert!(range1_min <= range1_max);
+                    assert!(range2_min <= range2_max);
+                    assert!(range1_min <= range2_min);
+                    assert!(range1_max <= range2_max);
+                    assert!(range1_max <= range2_min);
+                    if range1_min != range1_max {
+                        new_ranges.push((range1_min, range1_max));
+                    }
+                    if range2_min != range2_max {
+                        new_ranges.push((range2_min, range2_max));
                     }
                 }
-                for r in 0..ranges.len() {
-                    let min_x = ranges[r].0;
-                    let max_x = ranges[r].1;
-                    if min_x == 0 && max_x == 0 {
-                        continue;
-                    }
-                    if min_x == 0 && max_x == max_row {
+            }
+            // Check: 0 -> min of min's
+            for x in 0..x_min {
+                detected = false;
+                for r in 0..new_ranges.len() {
+                    let min_x = new_ranges[r].0;
+                    let max_x = new_ranges[r].1;
+                    if min_x <= x && x <= max_x {
                         detected = true;
                         break;
                     }
                 }
-
                 if !detected {
-                    let mut x_min = max_row;
-                    let mut x_max = max_row;
-                    for r in 0..ranges.len() {
-                        let min_x = ranges[r].0;
-                        let max_x = ranges[r].1;
-                        if min_x == 0 && max_x == 0 {
-                            continue;
-                        }
-                        x_min = x_min.min(min_x);
-                        x_max = x_max.min(max_x);
-                    }
-                    // Check: 0 - min of min's
-                    for x in 0..x_min {
-                        detected = false;
-                        for r in 0..ranges.len() {
-                            let min_x = ranges[r].0;
-                            let max_x = ranges[r].1;
-                            if min_x == 0 && max_x == 0 {
-                                continue;
-                            }
-                            if min_x <= x && x <= max_x {
-                                detected = true;
-                                break;
-                            }
-                        }
-                        if !detected {
-                            return x as i64 * 4000000 + y as i64;
-                        }
-                    }
-                    // Check: min of max's - max_row
-                    for x in x_max..=max_row {
-                        detected = false;
-                        for r in 0..ranges.len() {
-                            let min_x = ranges[r].0;
-                            let max_x = ranges[r].1;
-                            if min_x == 0 && max_x == 0 {
-                                continue;
-                            }
-                            if min_x <= x && x <= max_x {
-                                detected = true;
-                                break;
-                            }
-                        }
-                        if !detected {
-                            return x as i64 * 4000000 + y as i64;
-                        }
-                    }
+                    return x as i64 * 4000000 + y as i64;
                 }
             }
+            // Check: min of max's -> max_row
+            for x in x_max..=max_row {
+                detected = false;
+                for r in 0..new_ranges.len() {
+                    let min_x = new_ranges[r].0;
+                    let max_x = new_ranges[r].1;
+                    if min_x <= x && x <= max_x {
+                        detected = true;
+                        break;
+                    }
+                }
+                if !detected {
+                    return x as i64 * 4000000 + y as i64;
+                }
+            }
+            // Check: min of max's -> max_row
+            // for x in x_max..=max_row {
+            //     detected = false;
+            //     for r in 0..ranges.len() {
+            //         let min_x = ranges[r].0;
+            //         let max_x = ranges[r].1;
+            //         if min_x == 0 && max_x == 0 {
+            //             continue;
+            //         }
+            //         if min_x <= x && x <= max_x {
+            //             detected = true;
+            //             break;
+            //         }
+            //     }
+            //     if !detected {
+            //         return x as i64 * 4000000 + y as i64;
+            //     }
+            // }
         }
         panic!("Did not find it");
     }
